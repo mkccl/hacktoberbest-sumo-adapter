@@ -25,6 +25,7 @@ COPY . /app
 # Explicitly copy SUMO configuration files to ensure they're in the right place
 COPY osm/berlin_sim.sumocfg /app/sumo_config/
 COPY osm/*.xml /app/sumo_config/
+COPY osm/*.xml.gz /app/sumo_config/
 
 # Upgrade pip and install requirements
 RUN python3 -m pip install --no-cache-dir --upgrade pip && \
