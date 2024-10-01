@@ -62,7 +62,7 @@ logger = logging.getLogger(__name__)
 
 def run_simulation():
   global simulation_running
-  sumoCmd = [checkBinary('sumo'), "-c", "osm/berlin_sim.sumocfg"]
+  sumoCmd = [checkBinary('sumo'), "-c", "/app/sumo_config/berlin_sim.sumocfg"]
 
   max_retries = 3
   retry_count = 0
@@ -80,7 +80,6 @@ def run_simulation():
           lon, lat = traci.simulation.convertGeo(position[0], position[1])
           speed = traci.vehicle.getSpeed(vehicle_id)
           timestamp = traci.simulation.getTime()
-
 
           data = {
             'vehicle_id': vehicle_id,
