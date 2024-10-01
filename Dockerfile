@@ -16,6 +16,7 @@ RUN apt-get update && apt-get install -y \
     python3.12 \
     python3.12-venv \
     python3.12-dev \
+    python3.12-distutils \
     python3-pip \
     wget \
     cmake \
@@ -45,7 +46,7 @@ ENV SUMO_HOME /usr/local/share/sumo
 COPY . /app
 
 # Upgrade pip and install requirements
-RUN python3.12 -m pip install --no-cache-dir --upgrade pip && \
+RUN python3.12 -m pip install --no-cache-dir --upgrade pip setuptools wheel && \
     python3.12 -m pip install --no-cache-dir -r requirements.txt
 
 # Make port 5000 available to the world outside this container
