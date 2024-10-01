@@ -4,10 +4,24 @@ FROM python:3.9-slim
 # Set the working directory in the container
 WORKDIR /app
 
-# Install SUMO dependencies
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    wget \
+    gnupg2 \
+    software-properties-common \
+    && rm -rf /var/lib/apt/lists/*
+
+# Add SUMO repository
+RUN wget -O - https://dist.eclipse.org/sumo/1.18.0/sumo-1.18.0-key.pub | apt-key add - \
+    && add-apt-repository "deb https://dist.eclipse.org/sumo/1.18.0/bin/linux/debian bullseye main"
+
+# Install SUMO
 RUN apt-get update && apt-get install -y \
     sumo sumo-tools sumo-doc \
     && rm -rf /var/lib/apt/lists/*
+
+# Set SUMO_HOME environment variable
+ENV SUMO_HOME /usr/share/sumo
 
 # Copy the current directory contents into the container at /app
 COPY . /app
