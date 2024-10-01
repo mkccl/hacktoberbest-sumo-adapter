@@ -62,7 +62,15 @@ logger = logging.getLogger(__name__)
 
 def run_simulation():
   global simulation_running
-  sumoCmd = [checkBinary('sumo'), "-c", "/app/sumo_config/berlin_sim.sumocfg"]
+  sumo_config_path = os.path.join(os.getcwd(), "osm", "berlin_sim.sumocfg")
+
+  if not os.path.exists(sumo_config_path):
+    logger.error(f"SUMO configuration file not found at {sumo_config_path}")
+    return
+
+  sumoCmd = [checkBinary('sumo'), "-c", sumo_config_path]
+
+  logger.info(f"Starting SUMO simulation with command: {' '.join(sumoCmd)}")
 
   max_retries = 3
   retry_count = 0
