@@ -71,6 +71,9 @@ def run_simulation():
   sumoCmd = [checkBinary('sumo'), "-c", sumo_config_path]
 
   logger.info(f"Starting SUMO simulation with command: {' '.join(sumoCmd)}")
+  logger.info(f"SUMO_HOME: {os.environ.get('SUMO_HOME')}")
+  logger.info(f"Current working directory: {os.getcwd()}")
+  logger.info(f"Contents of osm directory: {os.listdir('osm')}")
 
   max_retries = 3
   retry_count = 0
