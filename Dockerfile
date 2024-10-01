@@ -7,19 +7,14 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Set the working directory in the container
 WORKDIR /app
 
-# Install system dependencies, Python, and pip
+# Install system dependencies, Python, pip, and SUMO
 RUN apt-get update && apt-get install -y \
     python3 \
     python3-pip \
-    wget \
+    sumo \
+    sumo-tools \
+    sumo-doc \
     && rm -rf /var/lib/apt/lists/*
-
-# Install SUMO 1.20.0
-RUN wget https://sumo.dlr.de/releases/1.20.0/sumo_1.20.0-1_amd64.deb && \
-    apt-get update && \
-    apt-get install -y ./sumo_1.20.0-1_amd64.deb && \
-    rm sumo_1.20.0-1_amd64.deb && \
-    rm -rf /var/lib/apt/lists/*
 
 # Set SUMO_HOME environment variable
 ENV SUMO_HOME /usr/share/sumo
