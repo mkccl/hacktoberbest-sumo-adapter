@@ -26,6 +26,9 @@ COPY . /app
 RUN python3 -m pip install --no-cache-dir --upgrade pip && \
     python3 -m pip install --no-cache-dir -r requirements.txt
 
+# Run the SUMO config modification script
+RUN python3 modify_sumo_config.py
+
 # Make port 5000 available to the world outside this container
 EXPOSE 5000
 
