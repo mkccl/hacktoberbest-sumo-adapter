@@ -18,20 +18,25 @@ RUN apt-get update && apt-get install -y \
     python3.12-dev \
     python3-pip \
     wget \
+    cmake \
+    libxerces-c-dev \
+    libfox-1.6-dev \
+    libgdal-dev \
+    libproj-dev \
+    libgl2ps-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Install SUMO 1.20.0
 RUN wget https://sumo.dlr.de/releases/1.20.0/sumo-src-1.20.0.tar.gz \
     && tar -xzf sumo-src-1.20.0.tar.gz \
     && cd sumo-1.20.0 \
-    && apt-get update && apt-get install -y cmake libxerces-c-dev libfox-1.6-dev libgdal-dev libproj-dev libgl2ps-dev \
-    && mkdir build/cmake-build && cd build/cmake-build \
+    && mkdir -p build/cmake-build \
+    && cd build/cmake-build \
     && cmake ../.. \
     && make -j$(nproc) \
     && make install \
     && cd /app \
-    && rm -rf sumo-src-1.20.0.tar.gz sumo-1.20.0 \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf sumo-src-1.20.0.tar.gz sumo-1.20.0
 
 # Set SUMO_HOME environment variable
 ENV SUMO_HOME /usr/local/share/sumo
