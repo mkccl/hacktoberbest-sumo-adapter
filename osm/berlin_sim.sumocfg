@@ -13,7 +13,7 @@
 
     <processing>
         <ignore-route-errors value="true"/>
-        <tls.actuated.jam-threshold value="30"/>
+        <!-- <tls.actuated.jam-threshold value="30"/> -->
     </processing>
 
     <routing>

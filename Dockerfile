@@ -22,8 +22,7 @@ ENV SUMO_HOME /usr/share/sumo
 # Copy the current directory contents into the container at /app
 COPY . /app
 
-# Copy SUMO configuration files to a specific directory
-RUN mkdir -p /app/sumo_config
+# Explicitly copy SUMO configuration files to ensure they're in the right place
 COPY osm/berlin_sim.sumocfg /app/sumo_config/
 COPY osm/*.xml /app/sumo_config/
 
