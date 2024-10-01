@@ -1,4 +1,4 @@
-Flask==2.3.2
-appwrite==3.0.1
-traci==1.18.0
-sumolib==1.18.0
+Flask==3.0.3
+appwrite==6.1.0
+traci==1.20.0
+sumolib==1.20.0
