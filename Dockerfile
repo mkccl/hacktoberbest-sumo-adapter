@@ -22,6 +22,11 @@ ENV SUMO_HOME /usr/share/sumo
 # Copy the current directory contents into the container at /app
 COPY . /app
 
+# Copy SUMO configuration files to a specific directory
+RUN mkdir -p /app/sumo_config
+COPY osm/berlin_sim.sumocfg /app/sumo_config/
+COPY osm/*.xml /app/sumo_config/
+
 # Upgrade pip and install requirements
 RUN python3 -m pip install --no-cache-dir --upgrade pip && \
     python3 -m pip install --no-cache-dir -r requirements.txt
