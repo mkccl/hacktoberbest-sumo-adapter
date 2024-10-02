@@ -1,7 +1,7 @@
 # Stage 1: Build SUMO from source
-FROM python:3.8-buster AS builder
+FROM python:3.8-bullseye AS builder
 
-LABEL maintainer="Dominik S. Buse (buse@ccs-labs.org)"
+LABEL maintainer="Your Name (your.email@example.com)"
 LABEL description="Dockerised Simulation of Urban MObility (SUMO)"
 
 ENV SUMO_VERSION 1_20_0
@@ -9,37 +9,35 @@ ENV SUMO_HOME /opt/sumo
 
 # Install build dependencies
 RUN apt-get update && apt-get -qq install -y \
-    wget \
-    g++ \
-    make \
+    build-essential \
     cmake \
     libxerces-c-dev \
-    libfox-1.6-0 \
     libfox-1.6-dev \
     libgdal-dev \
     libproj-dev \
     swig \
     python3 \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
 # Download and extract SUMO source code
 RUN cd /tmp && \
-    wget -q -O sumo.tar.gz https://github.com/eclipse/sumo/archive/v$SUMO_VERSION.tar.gz && \
+    wget -q -O sumo.tar.gz https://github.com/eclipse/sumo/archive/v${SUMO_VERSION}.tar.gz && \
     tar xzf sumo.tar.gz && \
-    mv sumo-$SUMO_VERSION $SUMO_HOME && \
+    mv sumo-${SUMO_VERSION} $SUMO_HOME && \
     rm sumo.tar.gz
 
 # Configure and build SUMO from source
 RUN cd $SUMO_HOME && \
-    mkdir build/cmake-build && \
-    cd build/cmake-build && \
-    cmake -DCMAKE_BUILD_TYPE=Release ../.. && \
+    mkdir build && \
+    cd build && \
+    cmake .. && \
     make -j$(nproc)
 
 # Stage 2: Create final image
-FROM python:3.8-buster
+FROM python:3.8-bullseye
 
-LABEL maintainer="Dominik S. Buse (buse@ccs-labs.org)"
+LABEL maintainer="Your Name (your.email@example.com)"
 LABEL description="Dockerised Simulation of Urban MObility (SUMO)"
 
 ENV SUMO_VERSION 1_20_0
@@ -49,12 +47,12 @@ ENV PATH="${SUMO_HOME}/bin:${PATH}"
 
 # Install runtime dependencies
 RUN apt-get update && apt-get -qq install -y \
-    libgdal20 \
+    libgdal28 \
     libfox-1.6-0 \
     libgl1 \
     libgl2ps1.4 \
-    libglu1 \
-    libproj15 \
+    libglu1-mesa \
+    libproj19 \
     libxerces-c3.2 \
     && rm -rf /var/lib/apt/lists/*
 
