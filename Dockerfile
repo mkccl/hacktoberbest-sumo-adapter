@@ -4,7 +4,7 @@ FROM python:3.8-buster AS builder
 LABEL maintainer="Dominik S. Buse (buse@ccs-labs.org)"
 LABEL description="Dockerised Simulation of Urban MObility (SUMO)"
 
-ENV SUMO_VERSION 1_6_0
+ENV SUMO_VERSION 1_20_0
 ENV SUMO_HOME /opt/sumo
 
 # Install build dependencies
@@ -18,8 +18,8 @@ RUN apt-get update && apt-get -qq install -y \
     libfox-1.6-dev \
     libgdal-dev \
     libproj-dev \
-    python2.7 \
     swig \
+    python3 \
     && rm -rf /var/lib/apt/lists/*
 
 # Download and extract SUMO source code
@@ -31,10 +31,9 @@ RUN cd /tmp && \
 
 # Configure and build SUMO from source
 RUN cd $SUMO_HOME && \
-    sed -i 's/endif (PROJ_FOUND)/\tadd_compile_definitions(ACCEPT_USE_OF_DEPRECATED_PROJ_API_H)\n\0/' CMakeLists.txt && \
     mkdir build/cmake-build && \
     cd build/cmake-build && \
-    cmake -DCMAKE_BUILD_TYPE:STRING=Release ../.. && \
+    cmake -DCMAKE_BUILD_TYPE=Release ../.. && \
     make -j$(nproc)
 
 # Stage 2: Create final image
@@ -43,7 +42,7 @@ FROM python:3.8-buster
 LABEL maintainer="Dominik S. Buse (buse@ccs-labs.org)"
 LABEL description="Dockerised Simulation of Urban MObility (SUMO)"
 
-ENV SUMO_VERSION 1_6_0
+ENV SUMO_VERSION 1_20_0
 ENV SUMO_HOME /opt/sumo
 ENV PYTHONPATH="${SUMO_HOME}/tools"
 ENV PATH="${SUMO_HOME}/bin:${PATH}"
@@ -55,15 +54,12 @@ RUN apt-get update && apt-get -qq install -y \
     libgl1 \
     libgl2ps1.4 \
     libglu1 \
-    libproj13 \
+    libproj15 \
     libxerces-c3.2 \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy SUMO from the builder stage
-RUN mkdir -p $SUMO_HOME
-COPY --from=builder $SUMO_HOME/data $SUMO_HOME/data
-COPY --from=builder $SUMO_HOME/tools $SUMO_HOME/tools
-COPY --from=builder $SUMO_HOME/bin $SUMO_HOME/bin
+COPY --from=builder $SUMO_HOME $SUMO_HOME
 
 # Set working directory
 WORKDIR /app
