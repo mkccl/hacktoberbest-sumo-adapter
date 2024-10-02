@@ -1,59 +1,86 @@
-# Use Ubuntu 22.04 as the base image
-FROM ubuntu:22.04
+# Stage 1: Build SUMO from source
+FROM python:3.8-buster AS builder
 
-# Avoid prompts from apt
-ENV DEBIAN_FRONTEND=noninteractive
+LABEL maintainer="Dominik S. Buse (buse@ccs-labs.org)"
+LABEL description="Dockerised Simulation of Urban MObility (SUMO)"
 
-# Set the working directory in the container
-WORKDIR /app
+ENV SUMO_VERSION 1_6_0
+ENV SUMO_HOME /opt/sumo
 
-# Install system dependencies and Python 3.12
-RUN apt-get update && apt-get install -y \
-    software-properties-common \
-    && add-apt-repository ppa:deadsnakes/ppa \
-    && apt-get update \
-    && apt-get install -y \
-    python3.12 \
-    python3.12-venv \
-    python3.12-dev \
-    python3.12-distutils \
-    python3-pip \
+# Install build dependencies
+RUN apt-get update && apt-get -qq install -y \
     wget \
+    g++ \
+    make \
     cmake \
     libxerces-c-dev \
+    libfox-1.6-0 \
     libfox-1.6-dev \
     libgdal-dev \
     libproj-dev \
-    libgl2ps-dev \
+    python2.7 \
+    swig \
     && rm -rf /var/lib/apt/lists/*
 
-# Install SUMO 1.20.0
-RUN wget https://sumo.dlr.de/releases/1.20.0/sumo-src-1.20.0.tar.gz \
-    && tar -xzf sumo-src-1.20.0.tar.gz \
-    && cd sumo-1.20.0 \
-    && mkdir -p build/cmake-build \
-    && cd build/cmake-build \
-    && cmake ../.. \
-    && make -j$(nproc) \
-    && make install \
-    && cd /app \
-    && rm -rf sumo-src-1.20.0.tar.gz sumo-1.20.0
+# Download and extract SUMO source code
+RUN cd /tmp && \
+    wget -q -O sumo.tar.gz https://github.com/eclipse/sumo/archive/v$SUMO_VERSION.tar.gz && \
+    tar xzf sumo.tar.gz && \
+    mv sumo-$SUMO_VERSION $SUMO_HOME && \
+    rm sumo.tar.gz
 
-# Set SUMO_HOME environment variable
-ENV SUMO_HOME /usr/local/share/sumo
+# Configure and build SUMO from source
+RUN cd $SUMO_HOME && \
+    sed -i 's/endif (PROJ_FOUND)/\tadd_compile_definitions(ACCEPT_USE_OF_DEPRECATED_PROJ_API_H)\n\0/' CMakeLists.txt && \
+    mkdir build/cmake-build && \
+    cd build/cmake-build && \
+    cmake -DCMAKE_BUILD_TYPE:STRING=Release ../.. && \
+    make -j$(nproc)
 
-# Copy the current directory contents into the container at /app
+# Stage 2: Create final image
+FROM python:3.8-buster
+
+LABEL maintainer="Dominik S. Buse (buse@ccs-labs.org)"
+LABEL description="Dockerised Simulation of Urban MObility (SUMO)"
+
+ENV SUMO_VERSION 1_6_0
+ENV SUMO_HOME /opt/sumo
+ENV PYTHONPATH="${SUMO_HOME}/tools"
+ENV PATH="${SUMO_HOME}/bin:${PATH}"
+
+# Install runtime dependencies
+RUN apt-get update && apt-get -qq install -y \
+    libgdal20 \
+    libfox-1.6-0 \
+    libgl1 \
+    libgl2ps1.4 \
+    libglu1 \
+    libproj13 \
+    libxerces-c3.2 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy SUMO from the builder stage
+RUN mkdir -p $SUMO_HOME
+COPY --from=builder $SUMO_HOME/data $SUMO_HOME/data
+COPY --from=builder $SUMO_HOME/tools $SUMO_HOME/tools
+COPY --from=builder $SUMO_HOME/bin $SUMO_HOME/bin
+
+# Set working directory
+WORKDIR /app
+
+# Copy application code into /app
 COPY . /app
 
-# Upgrade pip and install requirements
-RUN python3.12 -m pip install --no-cache-dir --upgrade pip setuptools wheel && \
-    python3.12 -m pip install --no-cache-dir -r requirements.txt
+# Upgrade pip and install Python dependencies
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel
 
-# Make port 5000 available to the world outside this container
+# Remove 'traci' and 'sumolib' from requirements.txt if present
+RUN grep -vE "^(traci|sumolib)" requirements.txt > temp_requirements.txt && \
+    pip install --no-cache-dir -r temp_requirements.txt && \
+    rm temp_requirements.txt
+
+# Expose port 5000
 EXPOSE 5000
 
-# Define environment variable
-ENV FLASK_APP=app.py
-
-# Run app.py when the container launches
-CMD ["python3.12", "-m", "flask", "run", "--host=0.0.0.0"]
+# Run your Flask app
+CMD ["python", "app.py"]
