@@ -1,5 +1,5 @@
 # Stage 1: Build SUMO from source
-FROM python:3.8-bullseye AS builder
+FROM python:3.9-bullseye AS builder
 
 LABEL maintainer="Your Name (your.email@example.com)"
 LABEL description="Dockerised Simulation of Urban MObility (SUMO)"
